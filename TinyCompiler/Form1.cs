@@ -31,7 +31,7 @@ namespace TinyCompiler
             textBox2.Clear();
             moderator mdr = new moderator(textBox1.Text.ToString());
             dataGridView1.DataSource = mdr.getDataTable();
-
+            textBox2.Text = String.Join(Environment.NewLine, mdr.getErrorsList());
         }
 
         private void button2_Click(object sender, EventArgs e)
