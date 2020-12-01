@@ -12,7 +12,7 @@ public enum TinyToken
     t_lCurlyBracket, t_rCurlyBracket, t_Quotation, t_openComment, t_closeComment,
 
     t_int, t_float, t_string, t_read, t_write, t_repeat, t_until, t_if,
-    t_elseif, t_else, t_then, t_return, t_end, t_comment,
+    t_elseif, t_else, t_then, t_return, t_end, t_endl, t_comment,
 
     t_number, t_identifier, t_constantString
 }
@@ -227,6 +227,10 @@ namespace TinyCompiler
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_end);
             }
+            else if (lexm == "endl")
+            {
+                ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_endl);
+            }
             return ans;
         }
         
@@ -279,7 +283,7 @@ namespace TinyCompiler
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_plus);
             }
-            else if (lexm == "-")
+            else if (lexm == "-" || lexm== "–")
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_minus);
             }
@@ -319,10 +323,6 @@ namespace TinyCompiler
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_rCurlyBracket);
             }
-            else if (lexm == "\"")
-            {
-                ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_Quotation);
-            }
             else if (lexm == "/")
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_divide);
@@ -344,15 +344,14 @@ namespace TinyCompiler
         }
         public static bool isConstantString(string tmString)
         {
-            return (tmString[0] == '"' && tmString[tmString.Length - 1] == '"');
+            return (tmString.Length>=2 && tmString[0] == '"' && tmString[tmString.Length - 1] == '"');
         }
-       
         public static bool isComment(string tmCmnt)
         {
             return (tmCmnt.Length >= 4 && tmCmnt.Substring(0, 2) == "/*" && tmCmnt.Substring(tmCmnt.Length - 2, 2) == "*/");
            
         }
-        public static bool isLetter(char ch)
+        public static bool isLetter(char ch) // change here if not case insensitive
         {
             return ((ch >= 'a' && ch <= 'z')||ch== '’');
         }

@@ -34,7 +34,6 @@ namespace TinyCompiler
             dataGridView1.DataSource = mdr.getDataTable();
             textBox2.Text = String.Join(Environment.NewLine, mdr.getErrorsList());
         }
-
         private void button2_Click(object sender, EventArgs e)
         {
             textBox1.Clear();
