@@ -26,7 +26,7 @@ namespace TinyCompiler
             tokensTable.Columns.Add("Token Classes", typeof(string));
             foreach (KeyValuePair<string, TinyToken> st in tiny_scanner.tinyTokensList)
             {
-                Console.WriteLine(st.Key + "  " + st.Value.ToString());
+                //Console.WriteLine(st.Key + "  " + st.Value.ToString());
                 tokensTable.Rows.Add(st.Key, st.Value.ToString());
             }
             return tokensTable;
@@ -37,7 +37,7 @@ namespace TinyCompiler
             List<string> errorsList=new List<string>();
             foreach (string st in tiny_scanner.errorsList)
             {
-                Console.WriteLine(st);
+                //Console.WriteLine(st);
                 errorsList.Add(st);
             }
             return errorsList;

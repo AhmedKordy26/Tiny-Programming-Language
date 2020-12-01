@@ -28,6 +28,7 @@ namespace TinyCompiler
 
         private void button1_Click(object sender, EventArgs e)
         {
+
             textBox2.Clear();
             moderator mdr = new moderator(textBox1.Text.ToString());
             dataGridView1.DataSource = mdr.getDataTable();
