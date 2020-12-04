@@ -14,7 +14,7 @@ namespace TinyCompiler
             tiny_scanner.errorsList.Clear();
             tiny_scanner.splittedStringsList.Clear();
             tiny_scanner.tinyTokensList.Clear();
-            sourceCode=sourceCode.ToLower();
+           // sourceCode=sourceCode.ToLower(); Case Sensitive 
             tiny_scanner.newSplitter(sourceCode);
             tiny_scanner.findTokensAndErrors();
             
@@ -33,7 +33,6 @@ namespace TinyCompiler
         }
         public List<string>getErrorsList()
         {
-            Console.WriteLine("\n\n");
             List<string> errorsList=new List<string>();
             foreach (string st in tiny_scanner.errorsList)
             {

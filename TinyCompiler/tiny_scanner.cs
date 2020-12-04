@@ -115,19 +115,13 @@ namespace TinyCompiler
                     operatorTmp = "";
                     continue;
                 } 
-                if(isOperator(operatorTmp).Key==false && isNumber(operatorTmp).Key==false &&isLetter(operatorTmp[0])==false)
-                {
-                    splittedStringsList.Add(operatorTmp);
-                    tmp = "";
-                    continue;
-                }
                 tmp += toSplit[i];
             }
             if (tmp.Length > 0)
                 splittedStringsList.Add(tmp);
             foreach (string st in splittedStringsList)
             {
-                // Console.WriteLine(st);
+                 Console.WriteLine(st);
             }
             return splittedStringsList;
         }
@@ -137,7 +131,6 @@ namespace TinyCompiler
                 tmpRes= new KeyValuePair<bool, TinyToken>();
             foreach (string st in splittedStringsList)
             {
-                Console.WriteLine(st + " "+st.Length);
                 tmpOp = isOperator(st);
                 tmpRes=isReservedWord(st);
                 if (tmpOp.Key == true)// is operator ??
@@ -299,14 +292,14 @@ namespace TinyCompiler
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_isEqual);
             }
-            else if (lexm == "/*")
-            {
-                ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_openComment);
-            }
-            else if (lexm == "*/")
-            {
-                ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_closeComment);
-            }
+            //else if (lexm == "/*") // comment has it's own function
+            //{
+            //    ans = new keyvaluepair<bool, tinytoken>(true, tinytoken.t_opencomment);
+            //}
+            //else if (lexm == "*/")
+            //{
+            //    ans = new keyvaluepair<bool, tinytoken>(true, tinytoken.t_closecomment);
+            //}
             else if (lexm == "&&")
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_and);
@@ -353,7 +346,7 @@ namespace TinyCompiler
         }
         public static bool isLetter(char ch) // change here if not case insensitive
         {
-            return ((ch >= 'a' && ch <= 'z')||ch== '’');
+            return ((ch >= 'a' && ch <= 'z')||(ch>='A' && ch<='Z') || ch== '’');
         }
     }
 }
