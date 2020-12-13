@@ -42,7 +42,7 @@ namespace TinyCompiler
                     tmp = "";
                     continue;
                 }
-                if (typeString== false && toSplit[i] == '"') 
+                if (typeString== false && (toSplit[i] == '"' || toSplit[i] == '“')) 
                 {
                     if (tmp.Length > 0) splittedStringsList.Add(tmp);
                     tmp = "\"";
@@ -51,7 +51,7 @@ namespace TinyCompiler
                 }
                 else if (typeString == true)
                 {
-                    if (toSplit[i] == '"')
+                    if (toSplit[i] == '"' || toSplit[i] == '“')
                     {
                         tmp += '"';
                         splittedStringsList.Add(tmp);
@@ -156,7 +156,8 @@ namespace TinyCompiler
                 }
                 else if(isComment(st))
                 {
-                    tinyTokensList.Add(new KeyValuePair<string, TinyToken>(st, TinyToken.t_comment));
+                    //tinyTokensList.Add(new KeyValuePair<string, TinyToken>(st, TinyToken.t_comment));
+                    // comment isn't a tokken ,, ignore it 
                 }
                 else
                 { 
@@ -337,7 +338,7 @@ namespace TinyCompiler
         }
         public static bool isConstantString(string tmString)
         {
-            return (tmString.Length>=2 && tmString[0] == '"' && tmString[tmString.Length - 1] == '"');
+            return (tmString.Length>=2 && (tmString[0] == '"' || tmString[0] == '“') && (tmString[tmString.Length-1] == '"' || tmString[tmString.Length - 1] == '“'));
         }
         public static bool isComment(string tmCmnt)
         {
