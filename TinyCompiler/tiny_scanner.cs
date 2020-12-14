@@ -29,7 +29,7 @@ namespace TinyCompiler
         {
             return ch == ' ' || ch == '\r' || ch == '\n' || ch == '\t';
         }
-        public static List<string> newSplitter(string toSplit) 
+        public static void newSplitter(string toSplit) 
         {
             //Console.WriteLine(toSplit);
             string tmp = "", operatorTmp;
@@ -123,7 +123,6 @@ namespace TinyCompiler
             {
                  Console.WriteLine(st);
             }
-            return splittedStringsList;
         }
         public static void findTokensAndErrors()
         {
