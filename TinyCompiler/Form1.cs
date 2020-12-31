@@ -41,5 +41,10 @@ namespace TinyCompiler
             DataTable empytyTable = new DataTable();
             dataGridView1.DataSource = empytyTable;
         }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

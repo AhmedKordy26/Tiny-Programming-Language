@@ -51,6 +51,12 @@ namespace TinyCompiler
                 }
                 else if (typeString == true)
                 {
+                    if(toSplit[i] == '\r' || toSplit[i] == '\n' || toSplit[i] == '\t')
+                    {
+                        splittedStringsList.Add(tmp);
+                        tmp = "";
+                        typeString = false;
+                    }
                     if (toSplit[i] == '"' || toSplit[i] == '“')
                     {
                         tmp += '"';
@@ -329,6 +335,7 @@ namespace TinyCompiler
         public static KeyValuePair<bool, double> isNumber(string num)// check if it's a number and return it's value
         {
             KeyValuePair<bool, double> ans = new KeyValuePair<bool, double>(false, 0.0);// dummy
+            if (num[0] == '.') return ans;
             if (double.TryParse(num, out double x) == true)
             {
                 ans = new KeyValuePair<bool, double>(true, x);
