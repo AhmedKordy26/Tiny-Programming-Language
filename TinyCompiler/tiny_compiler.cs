@@ -16,17 +16,8 @@ namespace TinyCompiler
             tiny_scanner.tinyTokensList.Clear();
             tiny_scanner.newSplitter(sourceCode);
             tiny_scanner.findTokensAndErrors();
-            tiny_syntax_analyzer.Initialize(getOnlyTokens(tiny_scanner.tinyTokensList));
+            tiny_syntax_analyzer.Initialize(tiny_scanner.tinyTokensList);
            
-        }
-        List<TinyToken> getOnlyTokens(List<KeyValuePair<string, TinyToken>> tokensList)
-        {
-            List<TinyToken> ans = new List<TinyToken>();
-            foreach (KeyValuePair<string, TinyToken> u in tokensList)
-            {
-                ans.Add(u.Value);
-            }
-            return ans;
         }
         public DataTable getDataTable()
         {

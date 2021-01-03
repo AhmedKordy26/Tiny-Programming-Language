@@ -12,7 +12,7 @@ public enum TinyToken
     t_lCurlyBracket, t_rCurlyBracket, t_Quotation, t_openComment, t_closeComment,
 
     t_int, t_float, t_string, t_read, t_write, t_repeat, t_until, t_if,
-    t_elseif, t_else, t_then, t_return, t_end, t_endl, t_comment,t_main,
+    t_elseif, t_else, t_then, t_return, t_end, t_endl, t_comment,
 
     t_number, t_identifier, t_constantString
 }
@@ -229,10 +229,6 @@ namespace TinyCompiler
             else if (lexm == "endl")
             {
                 ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_endl);
-            }
-            else if (lexm == "main")
-            {
-                ans = new KeyValuePair<bool, TinyToken>(true, TinyToken.t_main);
             }
             return ans;
         }

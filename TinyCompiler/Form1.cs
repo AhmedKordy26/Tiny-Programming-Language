@@ -32,7 +32,8 @@ namespace TinyCompiler
             treeView1.Nodes.Clear();
             moderator mdr = new moderator(textBox1.Text.ToString());
             dataGridView1.DataSource = mdr.getDataTable();
-            treeView1.Nodes[0].Nodes.Add(new TreeNode("ASD"));
+            treeView1.Nodes.Add("Ay 7aga");
+            treeView1.Nodes[0].Nodes.Add(new TreeNode("Baby Ay 7aga"));
             textBox2.Text = String.Join(Environment.NewLine, mdr.getErrorsList());
             
         }
@@ -52,10 +53,7 @@ namespace TinyCompiler
 
         private void button3_Click(object sender, EventArgs e)
         {
-            List<int> s = new List<int>();
-            s.Add(1);
-            s.Add(null);
-
+            // Test Here please
         }
     }
 }

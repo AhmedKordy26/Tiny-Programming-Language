@@ -19,10 +19,10 @@ namespace TinyCompiler
      class tiny_syntax_analyzer
     {
         static int tokensPointer;
-        static List<TinyToken> myTokens;
+        static List<KeyValuePair<string, TinyToken>> myTokens; // key is the token string   and value is the token type
         static Node root;
         static List<string> parserErrors;
-        public static void Initialize(List<TinyToken>inputTokens)
+        public static void Initialize(List<KeyValuePair<string, TinyToken>> inputTokens)
         {
             tokensPointer = 0;
             myTokens = inputTokens;
@@ -70,7 +70,9 @@ namespace TinyCompiler
             if(node1!=null)
             {
                 curNode.childrenNodes.Add(node1);
-                if(myTokens[tokensPointer++]==TinyToken.t_main && myTokens[tokensPointer++]==TinyToken.t_lBracket && myTokens[tokensPointer++] == TinyToken.t_rBracket)
+                if((myTokens[tokensPointer].Value==TinyToken.t_identifier && myTokens[tokensPointer++].Key=="main")
+                    && myTokens[tokensPointer++].Value==TinyToken.t_lBracket
+                    && myTokens[tokensPointer++].Value == TinyToken.t_rBracket)
                 {
                     node1 = FunctionBody();
                     if(node1!=null)
@@ -102,7 +104,8 @@ namespace TinyCompiler
             if(node1!=null)
                 curNode.childrenNodes.Add(node1);
 
-            if (myTokens[tokensPointer] != TinyToken.t_lBracket)// 2nd : the left bracket '('
+            if (tokensPointer<myTokens.Count &&
+                myTokens[tokensPointer].Value != TinyToken.t_lBracket)// 2nd : the left bracket '('
             {
                 error = "Error in FunctionDecl ... Expected (   found ";
                 error += myTokens[tokensPointer].ToString();
@@ -116,7 +119,8 @@ namespace TinyCompiler
             if (node1 != null)
                 curNode.childrenNodes.Add(node1);
 
-            if (myTokens[tokensPointer] != TinyToken.t_rBracket)// 4th : the right bracket ')'
+            if (tokensPointer < myTokens.Count && 
+                myTokens[tokensPointer].Value != TinyToken.t_rBracket)// 4th : the right bracket ')'
             {
                 error = "Error in FunctionDecl ... Expected )   found ";
                 error += myTokens[tokensPointer].ToString();
@@ -125,7 +129,6 @@ namespace TinyCompiler
                 tokensPointer++;
             }
             else curNode.childrenNodes.Add(new Node(")"));
-
 
             return null;
         }
