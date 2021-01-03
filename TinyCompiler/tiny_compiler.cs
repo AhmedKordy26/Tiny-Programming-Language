@@ -14,10 +14,19 @@ namespace TinyCompiler
             tiny_scanner.errorsList.Clear();
             tiny_scanner.splittedStringsList.Clear();
             tiny_scanner.tinyTokensList.Clear();
-           // sourceCode=sourceCode.ToLower(); Case Sensitive 
             tiny_scanner.newSplitter(sourceCode);
             tiny_scanner.findTokensAndErrors();
-            
+            tiny_syntax_analyzer.Initialize(getOnlyTokens(tiny_scanner.tinyTokensList));
+           
+        }
+        List<TinyToken> getOnlyTokens(List<KeyValuePair<string, TinyToken>> tokensList)
+        {
+            List<TinyToken> ans = new List<TinyToken>();
+            foreach (KeyValuePair<string, TinyToken> u in tokensList)
+            {
+                ans.Add(u.Value);
+            }
+            return ans;
         }
         public DataTable getDataTable()
         {
