@@ -34,6 +34,8 @@ namespace TinyCompiler
             dataGridView1.DataSource = mdr.getDataTable();
             treeView1.Nodes.Add("Ay 7aga");
             treeView1.Nodes[0].Nodes.Add(new TreeNode("Baby Ay 7aga"));
+            treeView1.Nodes[0].Nodes[0].Nodes.Add(new TreeNode("grand children Ay 7aga"));
+            treeView1.Nodes.Add("Ay 7aga sister");
             textBox2.Text = String.Join(Environment.NewLine, mdr.getErrorsList());
             
         }
