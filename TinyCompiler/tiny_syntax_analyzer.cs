@@ -10,10 +10,12 @@ namespace TinyCompiler
     {
         public string NodeName;
         public List<Node> childrenNodes;
+        public List<string> nodeErrors;
         public Node(string name)
         {
             NodeName = name;
             childrenNodes = new List<Node>();
+            nodeErrors = new List<string>();
         }
     }
     class tiny_syntax_analyzer
