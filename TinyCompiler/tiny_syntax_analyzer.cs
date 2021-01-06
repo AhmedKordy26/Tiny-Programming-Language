@@ -628,31 +628,286 @@ namespace TinyCompiler
         public static Node Ifff()
         {
             Node curNode = new Node("Ifff");
-            /// To be implmeneted 
+            int tmpPntr = tokensPointer;
+            Node node1 = ElseIfStatement();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                node1 = ElseStatement();
+                if (node1 != null)
+                {
+                    curNode.childrenNodes.Add(node1);
+                }
+                else
+                {
+                    tokensPointer = tmpPntr;
+                    if (myTokens[tokensPointer].Value == TinyToken.t_end)
+                    {
+                        curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    }
+                    else
+                    {
+                        string error = "Error in ifff ... couldn't find reserved keyword 'end' ";
+                        parserErrors.Add(error);
+                        tokensPointer++;// increase it for the first token in the function
+                    }
+                }
+            }
+            if (curNode.childrenNodes.Count == 1)
+                return curNode;
             return null;
         }
         public static Node ElseIfStatement()
         {
             Node curNode = new Node("ElseIfStatement");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_elseif)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ElseIfStatement ... couldn't find reserved keyword 'elseif' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+
+            Node node1 = ConditionStatement();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+
+            if (myTokens[tokensPointer].Value == TinyToken.t_then)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ElseIfStatement ... couldn't find reserved keyword 'then' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+
+            node1 = StatmentsForIf();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+
+            node1 = Ifff();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+
+            if (curNode.childrenNodes.Count == 5) return curNode;
+            return null;
+        }
+        public static Node ElseStatement()
+        {
+            Node curNode = new Node("ElseStatement");
+            if (myTokens[tokensPointer].Value == TinyToken.t_else)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ElseStatement ... couldn't find reserved keyword 'else' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = StatmentsForIf();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_end)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ElseStatement ... couldn't find reserved keyword 'end' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (curNode.childrenNodes.Count == 3) return curNode;
             return null;
         }
         public static Node WriteStatement()
         {
             Node curNode = new Node("WriteStatement");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_write)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in WriteStatement ... couldn't find reserved keyword 'write' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = Something();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_endl)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in WriteStatement ... couldn't find reserved keyword 'endl' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_comma)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in WriteStatement ... couldn't find reserved keyword ';' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (curNode.childrenNodes.Count == 3) return curNode;
+            return null;
+        }
+        public static Node Something()
+        {
+            Node curNode = new Node("Something");
+            int tmpPntr = tokensPointer;
+            Node node1 = Expression();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                if (myTokens[tokensPointer].Value == TinyToken.t_endl)
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                }
+                else
+                {
+                    string error = "Error in ifff ... couldn't find reserved keyword 'endl' ";
+                    parserErrors.Add(error);
+                    tokensPointer++;// increase it for the first token in the function
+                }
+            }
+            if (curNode.childrenNodes.Count == 1)
+                return curNode;
             return null;
         }
         public static Node Expression()
         {
             Node curNode = new Node("Expression");
-            /// To be implmeneted 
+            int tmpPntr = tokensPointer;
+            Node node1 = Equation();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                node1 = Term();
+                if (node1 != null)
+                {
+                    curNode.childrenNodes.Add(node1);
+                }
+                else
+                {
+                    tokensPointer = tmpPntr;
+                    if (myTokens[tokensPointer].Value == TinyToken.t_constantString)
+                    {
+                        curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    }
+                    else
+                    {
+                        string error = "Error in Expression ... couldn't find Constant String ";
+                        parserErrors.Add(error);
+                        tokensPointer++;// increase it for the first token in the function
+                    }
+                }
+            }
+            if (curNode.childrenNodes.Count == 1)
+                return curNode;
             return null;
         }
         public static Node Equation()// Equation CFG needs to be modified 
         {
             Node curNode = new Node("Equation");
             /// To be implmeneted 
+            return null;
+        }
+        public static Node HelperTerm()
+        {
+            Node curNode = new Node("HelperTerm");
+            int tmpPntr = tokensPointer;
+            Node node1 = Term();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                node1 = HelperEquation();
+                if (node1 != null)
+                {
+                    curNode.childrenNodes.Add(node1);
+                }
+            }
+            if (curNode.childrenNodes.Count == 1)
+                return curNode;
+            return null;
+        }
+        public static Node HelperEquation()
+        {
+            Node curNode = new Node("HelperEquation");
+            if (myTokens[tokensPointer].Value == TinyToken.t_lBracket)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in HelperEquation ... couldn't find reserved keyword 'left bracket' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = ManyTerms();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_rBracket)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in HelperEquation ... couldn't find reserved keyword 'Right bracket' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (curNode.childrenNodes.Count == 3) return curNode;
             return null;
         }
         public static Node ManyTerms()
@@ -670,37 +925,212 @@ namespace TinyCompiler
         public static Node ArthimiticOperator()
         {
             Node curNode = new Node("ArthimiticOperator");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_plus)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+            }
+            else if (myTokens[tokensPointer].Value == TinyToken.t_minus)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+            }
+            else if (myTokens[tokensPointer].Value == TinyToken.t_multiply)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+            }
+            else if (myTokens[tokensPointer].Value == TinyToken.t_divide)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+            }
+            else
+            {
+                string error = "Couldn't find an ArthimiticOperator Operator  :( !!!!";
+                parserErrors.Add(error);
+
+            }
+            tokensPointer++;// increase it for the first token in the function
+            if (curNode.childrenNodes.Count == 1) return curNode;
             return null;
         }
         public static Node ReadStatement()
         {
             Node curNode = new Node("ReadStatement");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_read)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ReadStatement ... couldn't find reserved keyword 'read' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ReadStatement ... couldn't find an identifier ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_lBracket)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ReadStatement ... couldn't find ';' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (curNode.childrenNodes.Count == 3) return curNode;
             return null;
         }
         public static Node ReturnStatement()
         {
             Node curNode = new Node("ReturnStatement");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_return)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ReturnStatement ... couldn't find reserved keyword 'return' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = Expression();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_semicolon)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in ReturnStatement ... couldn't find reserved keyword ';' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (curNode.childrenNodes.Count == 3) return curNode;
             return null;
         }
         public static Node AssignmentStatement()
         {
             Node curNode = new Node("AssignmentStatement");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in AssignmentStatement ... couldn't find an identifier ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_assign)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in AssignmentStatement ... couldn't find ':=' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = Expression();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_semicolon)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in AssignmentStatement ... couldn't find  ';' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            if (curNode.childrenNodes.Count == 4) return curNode;
             return null;
         }
         public static Node RepeatStatement()
         {
             Node curNode = new Node("RepeatStatement");
-            /// To be implmeneted 
+            if (myTokens[tokensPointer].Value == TinyToken.t_repeat)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in RepeatStatement ... couldn't find reserved keyword 'repeat' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = StatmentsForIf();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_until)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in RepeatStatement ... couldn't find reserved keyword 'until' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            node1 = ConditionStatement();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (curNode.childrenNodes.Count == 4) return curNode;
             return null;
         }
         public static Node DeclarationStatement()
         {
             Node curNode = new Node("DeclarationStatement");
-            /// To be implmeneted 
+            Node node1 = DataType();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            node1 = ManyIdentifiersDecl();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_semicolon)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in DeclarationStatement ... couldn't find ';' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+
+            if (curNode.childrenNodes.Count == 4) return curNode;
             return null;
         }
         public static Node ManyIdentifiersDecl()
@@ -718,8 +1148,29 @@ namespace TinyCompiler
         public static Node AssignmentInDecl()
         {
             Node curNode = new Node("AssignmentInDecl");
-            /// To be implmeneted 
-            return null;
+            int tmpPntr = tokensPointer;
+            if (myTokens[tokensPointer].Value == TinyToken.t_assign)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;// increase it for the first token in the function
+            }
+            else
+            {
+                string error = "Error in AssignmentInDecl ... couldn't find ':=' ";
+                parserErrors.Add(error);
+                tokensPointer++;// increase it for the first token in the function
+            }
+            Node node1 = Expression();
+            if (node1 != null)
+            {
+                curNode.childrenNodes.Add(node1);
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
 
     }
