@@ -32,7 +32,12 @@ namespace TinyCompiler
             parserErrors = new List<string>();
             int sz = 0;
             if (root.childrenNodes.Count > 0) sz = root.childrenNodes.Count;
-            if (sz < 1 || root.childrenNodes[sz - 1].NodeName != "MainFunction")
+
+            if (tokensPointer < myTokens.Count)
+            {
+                root.nodeErrors.Add("MainFunction must be the last function in the program");
+            }
+            else if (sz < 1 || root.childrenNodes[sz - 1].NodeName != "MainFunction")
             {
                 parserErrors.Add("Main Function isn't implemented properly or not implemented at all !!!");
             }
@@ -40,24 +45,54 @@ namespace TinyCompiler
         public static Node Program()
         {
             Node curNode = new Node("Program");
-            int tmpPntr = tokensPointer;
-            Node node1;
-            while (true)
+            int tmpPntr = tokensPointer, idx;
+            Node node1 = DataType();
+            idx = tokensPointer;
+            if ((node1.nodeErrors.Count == 0 && idx < myTokens.Count && myTokens[idx].Value == TinyToken.t_identifier && myTokens[idx].Key != "main"))
             {
-                node1 = MainFunction();
-                if (node1 != null)
-                {
-                    curNode.childrenNodes.Add(node1);
-                    return curNode;
-                }
                 tokensPointer = tmpPntr;
-                node1 = Function();
-                if (node1 != null)
+                node1 = Function();// 2nd recursion for function
+                if (node1.nodeErrors.Count == 0)
                 {
                     curNode.childrenNodes.Add(node1);
-                    continue;
                 }
-                return null;
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = Program();
+                if (node1.nodeErrors.Count == 0)
+                {
+                    curNode.childrenNodes.Add(node1);
+                }
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                return curNode;
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                node1 = MainFunction();// 1st main functoin
+                if (node1.nodeErrors.Count == 0)
+                {
+                    curNode.childrenNodes.Add(node1);
+                }
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                return curNode;
             }
         }
         public static Node MainFunction()
@@ -65,20 +100,25 @@ namespace TinyCompiler
             Node curNode = new Node("MainFunction");
             Node node1 = DataType();
             string error = "";
-            if (node1 != null)
+            if (node1.nodeErrors.Count == 0)
             {
                 curNode.childrenNodes.Add(node1);
+            }
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
             }
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier && myTokens[tokensPointer].Key == "main")
             {
                 curNode.childrenNodes.Add(new Node("main"));
-                tokensPointer++;// increase for the first token 
             }
             else
             {
                 error = "Error in MainFunction ... Reserved Keyword   'main'   Not Found  :(  !!!";
-                parserErrors.Add(error);
-                tokensPointer++;// increase for the first token 
+                curNode.nodeErrors.Add(error);
             }
             tokensPointer++;// increase for the first token 
 
@@ -86,126 +126,160 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lBracket)
             {
                 curNode.childrenNodes.Add(new Node("("));
-                tokensPointer++;
             }
             else
             {
                 error = "Error in MainFunction ... Left Bracket Not Found  :(  !!!";
-                parserErrors.Add(error);
-                tokensPointer++;
+                curNode.nodeErrors.Add(error);
             }
+            tokensPointer++;
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rBracket)
             {
                 curNode.childrenNodes.Add(new Node(")"));
-                tokensPointer++;
             }
             else
             {
                 error = "Error in MainFunction ... Right Bracket Not Found  :(  !!!";
-                parserErrors.Add(error);
-                tokensPointer++;
+                curNode.nodeErrors.Add(error);
             }
+            tokensPointer++;
             node1 = FunctionBody();
-            if (node1 != null)
+            if (node1.nodeErrors.Count == 0)
             {
                 curNode.childrenNodes.Add(node1);
             }
-            if (curNode.childrenNodes.Count == 5) return curNode;
-            return null;
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
+            }
+            return curNode;
         }
         public static Node Function()
         {
             Node curNode = new Node("Function");
             Node node1 = FunctionDecl();// 1st function declaration 
-            if (node1 != null)
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
+            }
             node1 = FunctionBody();// 2nd function body
-            if (node1 != null)
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
-            if (curNode.childrenNodes.Count == 2) return curNode;
-            return null;
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
+            }
+            return curNode;
         }
         public static Node FunctionDecl()
         {
             Node curNode = new Node("FunctionDecl");
             string error = "";
             Node node1 = Decl1Var();// 1st declare 1 variable for function datatype and function name 
-            if (node1 != null)
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
-
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
+            }
             if (tokensPointer < myTokens.Count &&
                 myTokens[tokensPointer].Value != TinyToken.t_lBracket)// 2nd : the left bracket '('
             {
                 error = "Error in FunctionDecl ... Expected (   found ";
                 error += myTokens[tokensPointer].ToString();
-                parserErrors.Add(error);
-                tokensPointer++;// increase for the first token
+                curNode.nodeErrors.Add(error);
             }
             else
             {
                 curNode.childrenNodes.Add(new Node("("));
-                tokensPointer++;// increase for the first token
             }
-
+            tokensPointer++;// increase for the first token
 
             node1 = ParametersDecl();// 3rd function parameteres declaration 
-            if (node1 != null)
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
+            }
 
             if (tokensPointer < myTokens.Count &&
-                myTokens[tokensPointer].Value != TinyToken.t_rBracket)// 4th : the right bracket ')'
+                myTokens[tokensPointer].Value != TinyToken.t_rBracket)
             {
                 error = "Error in FunctionDecl ... Expected )  found ";
                 error += myTokens[tokensPointer].ToString();
-                parserErrors.Add(error);
-                tokensPointer++;// increase for the second token in the function
+                curNode.nodeErrors.Add(error);
             }
             else
             {
                 curNode.childrenNodes.Add(new Node(")"));
-                tokensPointer++;// increase for the second token in the function
             }
-
-            if (curNode.childrenNodes.Count == 4) return curNode;
-            return null;
+            tokensPointer++;
+            return curNode;
         }
 
         public static Node Decl1Var()
         {
             Node curNode = new Node("Decl1Var");
             Node node1 = DataType();
-            if (node1 != null)
-            {
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
             }
-            if (myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                tokensPointer++;// increase it for the first token in the function
             }
             else
             {
                 string error = "Error in Decl1Var ... Expected identifier   found ";
                 error += myTokens[tokensPointer].ToString();
-                parserErrors.Add(error);
-                tokensPointer++;// increase it for the first token in the function
+                curNode.nodeErrors.Add(error);
             }
-
-
-            if (curNode.childrenNodes.Count == 2)
-            {
-                return curNode;
-            }
-            return null;
+            tokensPointer++;
+            return curNode;
         }
         public static Node ParametersDecl()
         {
             Node curNode = new Node("ParametersDecl");
             int tmpPntr = tokensPointer;
-            Node node1 = Parameters();
-            if (node1 != null)
+            Node node1 = DataType();
+            if (node1.nodeErrors.Count == 0)
             {
-                curNode.childrenNodes.Add(node1);
+                tokensPointer = tmpPntr;
+                node1 = Parameters();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+
             }
             else
             {
@@ -218,71 +292,73 @@ namespace TinyCompiler
         {
             Node curNode = new Node("FunctionBody");
 
-            if (myTokens[tokensPointer].Value == TinyToken.t_lCurlyBracket)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lCurlyBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                tokensPointer++;// increase it for the first token in the function
             }
             else
             {
                 string error = "Error in FunctionBody ... Expected '{'  found ";
                 error += myTokens[tokensPointer].ToString();
-                parserErrors.Add(error);
-                tokensPointer++;// increase it for the first token in the function
+                curNode.nodeErrors.Add(error);
             }
-
+            tokensPointer++;// increase it for the first token in the function
 
             Node node1 = ManyStatements();
-            if (node1 != null)
-            {
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
             }
             node1 = ReturnStatement();
-            if (node1 != null)
-            {
+            if (node1.nodeErrors.Count == 0)
                 curNode.childrenNodes.Add(node1);
+            else
+            {
+                for (int i = 0; i < node1.nodeErrors.Count; i++)
+                {
+                    curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                }
             }
-            if (myTokens[tokensPointer].Value == TinyToken.t_rCurlyBracket)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rCurlyBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                tokensPointer++;// increase it for the second token in the function
             }
             else
             {
                 string error = "Error in FunctionBody ... Expected '}'  found ";
                 error += myTokens[tokensPointer].ToString();
-                parserErrors.Add(error);
-                tokensPointer++;// increase it for the second token in the function
+                curNode.nodeErrors.Add(error);
             }
-
-            if (curNode.childrenNodes.Count == 4) return curNode;// the whole function is correct
-
-            return null;
+            tokensPointer++;
+            return curNode;
         }
         public static Node DataType()
         {
             Node curNode = new Node("DataType");
-            if (myTokens[tokensPointer].Value == TinyToken.t_int)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_int)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
             }
-            else if (myTokens[tokensPointer].Value == TinyToken.t_float)
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_float)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
             }
-            else if (myTokens[tokensPointer].Value == TinyToken.t_string)
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_string)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
             }
             else
             {
                 string error = "Not a Valid DataType :( !!!!";
-                parserErrors.Add(error);
+                curNode.nodeErrors.Add(error);
             }
             tokensPointer++;// increase it for the first token in the function
-            if (curNode.childrenNodes.Count > 0) return curNode;
-            return null;
-
+            return curNode;
         }
         public static Node Parameters()
         {
@@ -448,7 +524,6 @@ namespace TinyCompiler
             {
                 curNode.childrenNodes.Add(node1);
             }
-
             node1 = Term();
             if (node1 != null)
             {
