@@ -22,14 +22,12 @@ namespace TinyCompiler
     {
         static int tokensPointer;
         static List<KeyValuePair<string, TinyToken>> myTokens; // key is the token string   and value is the token type
-        static Node root;
-        static List<string> parserErrors;
+        public static Node root;
         public static void Initialize(List<KeyValuePair<string, TinyToken>> inputTokens)
         {
             tokensPointer = 0;
             myTokens = inputTokens;
             root = Program();
-            parserErrors = new List<string>();
             int sz = 0;
             if (root.childrenNodes.Count > 0) sz = root.childrenNodes.Count;
 
@@ -39,7 +37,7 @@ namespace TinyCompiler
             }
             else if (sz < 1 || root.childrenNodes[sz - 1].NodeName != "MainFunction")
             {
-                parserErrors.Add("Main Function isn't implemented properly or not implemented at all !!!");
+                root.nodeErrors.Add("Main Function isn't implemented properly or not implemented at all !!!");
             }
         }
         public static Node Program()
@@ -199,8 +197,12 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count &&
                 myTokens[tokensPointer].Value != TinyToken.t_lBracket)// 2nd : the left bracket '('
             {
-                error = "Error in FunctionDecl ... Expected (   found ";
-                error += myTokens[tokensPointer].ToString();
+                error = "Error in Function Declaration ... Expected '('  ";
+                if (tokensPointer < myTokens.Count)
+                {
+                    error += "found: ";
+                    error += myTokens[tokensPointer].ToString();
+                }
                 curNode.nodeErrors.Add(error);
             }
             else
@@ -254,8 +256,12 @@ namespace TinyCompiler
             }
             else
             {
-                string error = "Error in Decl1Var ... Expected identifier   found ";
-                error += myTokens[tokensPointer].ToString();
+                string error = "Error in Variable Declaration ... Expected identifier ";
+                if (tokensPointer < myTokens.Count)
+                {
+                    error += "found: ";
+                    error += myTokens[tokensPointer].ToString();
+                }
                 curNode.nodeErrors.Add(error);
             }
             tokensPointer++;
@@ -330,8 +336,13 @@ namespace TinyCompiler
             }
             else
             {
-                string error = "Error in FunctionBody ... Expected '}'  found ";
-                error += myTokens[tokensPointer].ToString();
+
+                string error = "Error in FunctionBody ... Expected '}' ";
+                if(tokensPointer<myTokens.Count)
+                {
+                    error += "found: ";
+                    error += myTokens[tokensPointer].ToString();
+                }
                 curNode.nodeErrors.Add(error);
             }
             tokensPointer++;
@@ -388,14 +399,71 @@ namespace TinyCompiler
         public static Node ParametersDash()
         {
             Node curNode = new Node("ParametersDash");
-            /// To be implmeneted 
-            return null;
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_comma)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
+                Node node1 = Decl1Var();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = ParametersDash();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+
+            }
+            else
+            {
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node ManyStatements()
         {
             Node curNode = new Node("ManyStatements");
-            /// To be implmeneted 
-            return null;
+            int tmpPntr = tokensPointer;
+            if (StatementLookAhead())
+            {
+                Node node1 = Statement();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = ManyStatements();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node Statement()
         {
@@ -595,8 +663,38 @@ namespace TinyCompiler
         public static Node ConditionStatementDash()
         {
             Node curNode = new Node("ConditionStatementDash");
-            /// To be implmeneted 
-            return null;
+            int tmpPntr = tokensPointer;
+            Node node1=BooleanOperator();
+            if(node1.nodeErrors.Count==0)
+            {
+                curNode.childrenNodes.Add(node1);
+                node1 = Condition();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = ConditionStatementDash();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node Condition()
         {
@@ -655,7 +753,7 @@ namespace TinyCompiler
             }
             else
             {
-                string error = "Couldn't find an Operator  :( !!!!";
+                string error = "Couldn't find a Condition Operator  :( !!!!";
                 curNode.nodeErrors.Add(error);
             }
             tokensPointer++;// increase it for the first token in the function
@@ -805,8 +903,38 @@ namespace TinyCompiler
         public static Node IdentifiersDash()
         {
             Node curNode = new Node("IdentifiersDash");
-            /// To be implmeneted 
-            return null;
+            Node node1;
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_comma)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
+                if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                }
+                else
+                {
+                    string error = "Error in Function Call ... couldn't find the identifier ";
+                    curNode.nodeErrors.Add(error);
+                }
+                tokensPointer++;
+                node1 = IdentifiersDash();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+
+            }
+            else
+            {
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node BooleanOperator()
         {
@@ -851,11 +979,66 @@ namespace TinyCompiler
             }
             return curNode;
         }
+        public static bool StatementLookAhead()
+        {
+            // used else if instead of or ,, to make the code  more readable ,, tmam ??
+            if(tokensPointer<myTokens.Count &&myTokens[tokensPointer].Value==TinyToken.t_if)
+            {
+                return true;
+            }
+            else if(tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_write)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_read)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_repeat)
+            {
+                return true;
+            }
+            else
+            {
+                Node node1 = DataType();
+                if (node1.nodeErrors.Count == 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public static Node StatmentsForIfDash()
         {
             Node curNode = new Node("StatmentsForIfDash");
-            /// To be implmeneted 
-            return null;
+            int tmpPntr = tokensPointer;
+            if(StatementLookAhead())
+            {
+                Node node1 = StatmentsForIf();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node Ifff()
         {
@@ -1104,9 +1287,39 @@ namespace TinyCompiler
         }
         public static Node EquationDash()// Equation CFG needs to be modified 
         {
-            Node curNode = new Node("Equation");
-            /// To be implmeneted 
-            return null;
+            Node curNode = new Node("EquationDash");
+            int tmpPntr = tokensPointer;
+            Node node1 = ArthimiticOperator();
+            if (node1.nodeErrors.Count == 0)
+            {
+                curNode.childrenNodes.Add(node1);
+                node1 = HelperTerm();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = EquationDash();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node HelperTerm()
         {
@@ -1202,8 +1415,38 @@ namespace TinyCompiler
         public static Node ManyTermsDash()
         {
             Node curNode = new Node("ManyTermsDash");
-            /// To be implmeneted 
-            return null;
+            int tmpPntr = tokensPointer;
+            Node node1 = ArthimiticOperator();
+            if (node1.nodeErrors.Count == 0)
+            {
+                curNode.childrenNodes.Add(node1);
+                node1 = Term();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = ManyTermsDash();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+            }
+            else
+            {
+                tokensPointer = tmpPntr;
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node ArthimiticOperator()
         {
@@ -1466,8 +1709,48 @@ namespace TinyCompiler
         public static Node ManyIdentifiersDeclDash()
         {
             Node curNode = new Node("ManyIdentifiersDeclDash");
-            /// To be implmeneted 
-            return null;
+            Node node1;
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_comma)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
+                if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                }
+                else
+                {
+                    string error = "Error in Declaration ... couldn't find the identifier ";
+                    curNode.nodeErrors.Add(error);
+                }
+                tokensPointer++;
+                node1 = AssignmentInDecl();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+                node1 = ManyIdentifiersDeclDash();
+                if (node1.nodeErrors.Count == 0)
+                    curNode.childrenNodes.Add(node1);
+                else
+                {
+                    for (int i = 0; i < node1.nodeErrors.Count; i++)
+                    {
+                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
+                    }
+                }
+
+            }
+            else
+            {
+                curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
         }
         public static Node AssignmentInDecl()
         {

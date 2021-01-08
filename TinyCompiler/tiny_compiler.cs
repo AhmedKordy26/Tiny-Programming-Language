@@ -31,15 +31,13 @@ namespace TinyCompiler
             }
             return tokensTable;
         }
-        public List<string>getErrorsList()
+        public List<string>getScannerErrorsList()
         {
-            List<string> errorsList=new List<string>();
-            foreach (string st in tiny_scanner.errorsList)
-            {
-                //Console.WriteLine(st);
-                errorsList.Add(st);
-            }
-            return errorsList;
+            return tiny_scanner.errorsList;
+        }
+        public List<string> getParserErrorsList()
+        {
+            return tiny_syntax_analyzer.root.nodeErrors;
         }
     }
     
