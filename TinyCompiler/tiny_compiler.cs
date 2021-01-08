@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
-
+using System.Windows.Forms;
 namespace TinyCompiler
 {
     class  moderator
@@ -17,7 +17,7 @@ namespace TinyCompiler
             tiny_scanner.newSplitter(sourceCode);
             tiny_scanner.findTokensAndErrors();
             tiny_syntax_analyzer.Initialize(tiny_scanner.tinyTokensList);
-           
+
         }
         public DataTable getDataTable()
         {
@@ -39,6 +39,22 @@ namespace TinyCompiler
         {
             return tiny_syntax_analyzer.root.nodeErrors;
         }
+        public TreeNode DFS(Node node)
+        {
+            if (node.childrenNodes.Count == 0) return new TreeNode(node.NodeName);
+            TreeNode bigTreeNode = new TreeNode(node.NodeName);
+            foreach (Node curNode in node.childrenNodes)
+            {
+                bigTreeNode.Nodes.Add(DFS(curNode));
+            }
+            return bigTreeNode;
+        }
+        public TreeNode getTreeView()
+        {
+            TreeNode treeNode = DFS(tiny_syntax_analyzer.root);
+            return treeNode;
+        }
+
     }
     
 }

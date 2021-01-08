@@ -33,13 +33,10 @@ namespace TinyCompiler
             treeView1.Nodes.Clear();
             moderator mdr = new moderator(textBox1.Text.ToString());
             dataGridView1.DataSource = mdr.getDataTable();
-           /* treeView1.Nodes.Add("Ay 7aga");
-            treeView1.Nodes[0].Nodes.Add(new TreeNode("Baby Ay 7aga"));
-            treeView1.Nodes[0].Nodes[0].Nodes.Add(new TreeNode("grand children Ay 7aga"));
-            treeView1.Nodes.Add("Ay 7aga sister");
-           */
             textBox2.Text = String.Join(Environment.NewLine, mdr.getScannerErrorsList());
             textBox3.Text = String.Join(Environment.NewLine, mdr.getParserErrorsList());
+            TreeNode tree= mdr.getTreeView();
+            treeView1.Nodes.Add(tree);
         }
         private void button2_Click(object sender, EventArgs e)
         {

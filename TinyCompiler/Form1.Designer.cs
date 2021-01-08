@@ -40,7 +40,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.textBox3 = new System.Windows.Forms.TextBox();
-            this.button3 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -140,7 +139,7 @@
             // 
             this.treeView1.Location = new System.Drawing.Point(747, 36);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(319, 573);
+            this.treeView1.Size = new System.Drawing.Size(589, 573);
             this.treeView1.TabIndex = 15;
             // 
             // label4
@@ -149,7 +148,7 @@
             this.label4.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.label4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label4.Font = new System.Drawing.Font("Palatino Linotype", 10.2F);
-            this.label4.Location = new System.Drawing.Point(848, 20);
+            this.label4.Location = new System.Drawing.Point(1003, 20);
             this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(92, 23);
@@ -177,23 +176,11 @@
             this.textBox3.Size = new System.Drawing.Size(690, 107);
             this.textBox3.TabIndex = 17;
             // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(570, 615);
-            this.button3.Margin = new System.Windows.Forms.Padding(4);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(160, 54);
-            this.button3.TabIndex = 19;
-            this.button3.Text = "test";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1096, 715);
-            this.Controls.Add(this.button3);
+            this.ClientSize = new System.Drawing.Size(1358, 715);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.label4);
@@ -229,7 +216,6 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox textBox3;
-        private System.Windows.Forms.Button button3;
     }
 }
 
