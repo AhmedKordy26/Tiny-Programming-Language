@@ -45,8 +45,11 @@ namespace TinyCompiler
             TreeNode bigTreeNode = new TreeNode(node.NodeName);
             foreach (Node curNode in node.childrenNodes)
             {
-                bigTreeNode.Nodes.Add(DFS(curNode));
+                TreeNode tmpTree = DFS(curNode);
+                if(tmpTree!=null &&curNode.NodeName!="Epsilon")
+                    bigTreeNode.Nodes.Add(DFS(curNode));
             }
+            if (bigTreeNode.Nodes.Count == 0) return null;
             return bigTreeNode;
         }
         public TreeNode getTreeView()
