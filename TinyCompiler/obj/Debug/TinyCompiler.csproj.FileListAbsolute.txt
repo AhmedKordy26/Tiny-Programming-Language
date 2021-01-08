@@ -8,3 +8,13 @@ I:\#4 (NTFS)252.66 GB\4th Year\Compiler\TinyProject\Tiny-Programming-Language\Ti
 I:\#4 (NTFS)252.66 GB\4th Year\Compiler\TinyProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.csproj.CoreCompileInputs.cache
 I:\#4 (NTFS)252.66 GB\4th Year\Compiler\TinyProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.exe
 I:\#4 (NTFS)252.66 GB\4th Year\Compiler\TinyProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.pdb
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\bin\Debug\TinyCompiler.exe.config
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\bin\Debug\TinyCompiler.exe
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\bin\Debug\TinyCompiler.pdb
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.csprojAssemblyReference.cache
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.Form1.resources
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.Properties.Resources.resources
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.csproj.GenerateResource.cache
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.csproj.CoreCompileInputs.cache
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.exe
+F:\4th year\compiler\GitSemifinalProject\Tiny-Programming-Language\TinyCompiler\obj\Debug\TinyCompiler.pdb

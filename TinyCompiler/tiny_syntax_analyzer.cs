@@ -225,8 +225,12 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count &&
                 myTokens[tokensPointer].Value != TinyToken.t_rBracket)
             {
-                error = "Error in FunctionDecl ... Expected )  found ";
-                error += myTokens[tokensPointer].ToString();
+                error = "Error in FunctionDecl ... Expected ) ";
+                if (tokensPointer < myTokens.Count)
+                {
+                    error += "found: ";
+                    error += myTokens[tokensPointer].ToString();
+                }
                 curNode.nodeErrors.Add(error);
             }
             else
@@ -305,7 +309,11 @@ namespace TinyCompiler
             else
             {
                 string error = "Error in FunctionBody ... Expected '{'  found ";
-                error += myTokens[tokensPointer].ToString();
+                if (tokensPointer < myTokens.Count)
+                {
+                    error += "found: ";
+                    error += myTokens[tokensPointer].ToString();
+                }
                 curNode.nodeErrors.Add(error);
             }
             tokensPointer++;// increase it for the first token in the function
@@ -437,6 +445,7 @@ namespace TinyCompiler
             int tmpPntr = tokensPointer;
             if (StatementLookAhead())
             {
+                tokensPointer = tmpPntr;
                 Node node1 = Statement();
                 if (node1.nodeErrors.Count == 0)
                     curNode.childrenNodes.Add(node1);
@@ -471,6 +480,7 @@ namespace TinyCompiler
 
             int tmpPntr = tokensPointer;
             Node dtpye = DataType();
+            tokensPointer = tmpPntr;
             if (dtpye.nodeErrors.Count == 0)
             {
                 Node node1 = DeclarationStatement();
@@ -486,7 +496,6 @@ namespace TinyCompiler
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_if)
             {
-                tokensPointer = tmpPntr;
                 Node node1 = IfStatement();
                 if (node1.nodeErrors.Count == 0)
                     curNode.childrenNodes.Add(node1);
@@ -524,19 +533,6 @@ namespace TinyCompiler
                     }
                 }
             }
-            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
-            {
-                Node node1 = ReturnStatement();
-                if (node1.nodeErrors.Count == 0)
-                    curNode.childrenNodes.Add(node1);
-                else
-                {
-                    for (int i = 0; i < node1.nodeErrors.Count; i++)
-                    {
-                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
-                    }
-                }
-            }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_repeat)
             {
                 Node node1 = RepeatStatement();
@@ -563,7 +559,7 @@ namespace TinyCompiler
                     }
                 }
             }
-            else
+            else if(tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 Node node1 = AssignmentStatement();
                 if (node1.nodeErrors.Count == 0)
@@ -575,6 +571,11 @@ namespace TinyCompiler
                         curNode.nodeErrors.Add(node1.nodeErrors[i]);
                     }
                 }
+            }
+            else
+            {
+                tokensPointer++;
+                curNode.nodeErrors.Add("Couldn't find a valid statment");
             }
             return curNode;
         }
@@ -779,20 +780,18 @@ namespace TinyCompiler
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_number)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            {
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
-                {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                }
-                else
-                {
-                    string error = "Couldn't find an identifier  :( !!!!";
-                    curNode.nodeErrors.Add(error);
-                }
+                curNode.nodeErrors.Add("Couldn't find a valid Term");
+                tokensPointer++;
             }
-
             return curNode;
         }
         public static Node FunctionCall()
@@ -994,10 +993,6 @@ namespace TinyCompiler
             {
                 return true;
             }
-            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
-            {
-                return true;
-            }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 return true;
@@ -1022,6 +1017,7 @@ namespace TinyCompiler
             int tmpPntr = tokensPointer;
             if(StatementLookAhead())
             {
+                tokensPointer = tmpPntr;
                 Node node1 = StatmentsForIf();
                 if (node1.nodeErrors.Count == 0)
                     curNode.childrenNodes.Add(node1);
@@ -1177,7 +1173,7 @@ namespace TinyCompiler
                 curNode.nodeErrors.Add(error);
             }
             tokensPointer++;
-            return null;
+            return curNode;
         }
         public static Node WriteStatement()
         {
@@ -1202,7 +1198,7 @@ namespace TinyCompiler
                     curNode.nodeErrors.Add(node1.nodeErrors[i]);
                 }
             }
-            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_comma)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
             }
@@ -1212,7 +1208,7 @@ namespace TinyCompiler
                 curNode.nodeErrors.Add(error);
             }
             tokensPointer++;
-            return null;
+            return curNode;
         }
         public static Node Something()
         {
@@ -1222,17 +1218,14 @@ namespace TinyCompiler
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
                 tokensPointer++;
             }
-            else
+            else 
             {
                 Node node1 = Expression();
                 if (node1.nodeErrors.Count == 0)
                     curNode.childrenNodes.Add(node1);
                 else
                 {
-                    for (int i = 0; i < node1.nodeErrors.Count; i++)
-                    {
-                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
-                    }
+                    curNode.nodeErrors.Add("Couldn't find a valid Expression or endl in write statement");
                 }
             }
             return curNode;
@@ -1245,17 +1238,14 @@ namespace TinyCompiler
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
                 tokensPointer++;
             }
-            else
+            else 
             {
                 Node node1 = Equation();
                 if (node1.nodeErrors.Count == 0)
                     curNode.childrenNodes.Add(node1);
                 else
                 {
-                    for (int i = 0; i < node1.nodeErrors.Count; i++)
-                    {
-                        curNode.nodeErrors.Add(node1.nodeErrors[i]);
-                    }
+                    curNode.nodeErrors.Add("Couldn't find a valid equation or constant string");
                 }
             }
             return curNode;
