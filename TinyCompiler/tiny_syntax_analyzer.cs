@@ -43,7 +43,8 @@ namespace TinyCompiler
         public static Node AddToChildrenNodesOrErrorsList(Node curNode, Node node1)
         {
             if (node1.nodeErrors.Count != 0)
-            {   
+            {
+                //curNode.nodeErrors.AddRange(node1.nodeErrors);
                 for (int i = 0; i < node1.nodeErrors.Count; i++)
                 {
                     curNode.nodeErrors.Add(node1.nodeErrors[i]);
@@ -84,38 +85,60 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier && myTokens[tokensPointer].Key == "main")
             {
                 curNode.childrenNodes.Add(new Node("main"));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                if ((tokensPointer >= myTokens.Count)||( myTokens[tokensPointer].Value == TinyToken.t_lBracket))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                
                 error = "Error in MainFunction ... Reserved Keyword   'main'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;// increase for the first token 
-
-
+            
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                if ((tokensPointer >= myTokens.Count) || ( myTokens[tokensPointer].Value == TinyToken.t_rBracket))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
                 error = "Error in MainFunction ... Left Bracket Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_lCurlyBracket))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
                 error = "Error in MainFunction ... Right Bracket Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+            
             node1 = FunctionBody();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             return curNode;
@@ -136,15 +159,17 @@ namespace TinyCompiler
             Node node1 = Decl1Var();// 1st declare 1 variable for function datatype and function name 
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer >= myTokens.Count ||
-                myTokens[tokensPointer].Value != TinyToken.t_lBracket)// 2nd : the left bracket '('
+                myTokens[tokensPointer].Value != TinyToken.t_lBracket)// 2nd : the left bracket '('  doesn't match
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                error = "Error in Function Declaration ... Expected '('  ";
-                if (tokensPointer < myTokens.Count)
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_lBracket))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
                 {
-                    error += "found: ";
-                    error += myTokens[tokensPointer].Key.ToString();
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
                 }
+
+                error = "Error in MainFunction ... Reserved Keyword   'main'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
             else
