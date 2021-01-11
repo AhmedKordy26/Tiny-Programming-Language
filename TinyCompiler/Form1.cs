@@ -57,5 +57,13 @@ namespace TinyCompiler
         {
             // Test Here please
         }
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            if(treeView1!=null)
+            {
+                treeView1.ExpandAll();
+            }
+        }
     }
 }

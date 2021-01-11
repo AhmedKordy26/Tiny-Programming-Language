@@ -35,10 +35,7 @@ namespace TinyCompiler
             {
                 root.nodeErrors.Add("MainFunction must be the last function in the program");
             }
-            else if (sz < 1 || root.childrenNodes[sz - 1].NodeName != "MainFunction")
-            {
-                root.nodeErrors.Add("Main Function isn't implemented properly or not implemented at all !!!");
-            }
+            
         }
         public static Node AddToChildrenNodesOrErrorsList(Node curNode, Node node1)
         {
@@ -52,6 +49,42 @@ namespace TinyCompiler
             }
             curNode.childrenNodes.Add(node1);
             return curNode;
+        }
+        public static bool DataTypeLookAhead()
+        {
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_int)
+            {
+                return true;
+            }
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_float)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_string)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool ConditionOperatorLookAhead()
+        {
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lessThan)
+            {
+                return true;
+            }
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_biggerThan)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_notEqual)
+            {
+                return true;
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_isEqual)
+            {
+                return true;
+            }
+            return false;
         }
         public static Node Program()
         {
@@ -142,7 +175,7 @@ namespace TinyCompiler
             node1 = FunctionBody();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             return curNode;
-        }
+        }// tmam
         public static Node Function()
         {
             Node curNode = new Node("Function");
@@ -151,53 +184,52 @@ namespace TinyCompiler
             node1 = FunctionBody();// 2nd function body
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             return curNode;
-        }
+        }// tmam
         public static Node FunctionDecl()
         {
             Node curNode = new Node("FunctionDecl");
-            string error = "";
+            string error  ="";
             Node node1 = Decl1Var();// 1st declare 1 variable for function datatype and function name 
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
-            if (tokensPointer >= myTokens.Count ||
-                myTokens[tokensPointer].Value != TinyToken.t_lBracket)// 2nd : the left bracket '('  doesn't match
+            if (tokensPointer < myTokens.Count &&  myTokens[tokensPointer].Value==TinyToken.t_lBracket)
             {
-                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_lBracket))// don't increase the pointer if it matches with the next expected token
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
+            }
+            else
+            {
+                if ((tokensPointer >= myTokens.Count) ||
+                    (myTokens[tokensPointer].Value == TinyToken.t_rBracket)||DataTypeLookAhead())// don't increase the pointer if it matches with the next expected token
                     curNode.childrenNodes.Add(new Node("ε"));
                 else
                 {
                     curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
                     tokensPointer++;
                 }
-
-                error = "Error in MainFunction ... Reserved Keyword   'main'   Not Found  :(  !!!";
+                error = "Error in Function Declaration ...  Left Bracket '('   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            else
-            {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-            }
-            tokensPointer++;// increase for the first token
 
             node1 = ParametersDecl();// 3rd function parameteres declaration 
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
-
-            if (tokensPointer >= myTokens.Count ||
-                myTokens[tokensPointer].Value != TinyToken.t_rBracket)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                error = "Error in FunctionDecl ... Expected ) ";
-                if (tokensPointer < myTokens.Count)
-                {
-                    error += "found: ";
-                    error += myTokens[tokensPointer].Key.ToString();
-                }
-                curNode.nodeErrors.Add(error);
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                if ((tokensPointer >= myTokens.Count) ||
+                    (myTokens[tokensPointer].Value == TinyToken.t_lCurlyBracket) )// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                error = "Error in Function Declaration ...  Right Bracket ')'   Not Found  :(  !!!";
+                curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
 
@@ -209,19 +241,14 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in Declaration ... Expected identifier ";
-                if (tokensPointer < myTokens.Count)
-                {
-                    error += "found: ";
-                    error += myTokens[tokensPointer].Key.ToString();
-                }
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in Declaration ... can't find the variable name  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node ParametersDecl()
@@ -249,18 +276,21 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lCurlyBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in FunctionBody ... Expected '{'  found ";
-                if (tokensPointer < myTokens.Count)
+                if ((tokensPointer >= myTokens.Count) || (StatementLookAhead()))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
                 {
-                    error += myTokens[tokensPointer].Key.ToString();
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
                 }
+
+                string error = "Error in Function Body ... '{'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;// increase it for the first token in the function
 
             Node node1 = ManyStatements();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
@@ -269,43 +299,48 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rCurlyBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in FunctionBody ... Expected '}' ";
-                if(tokensPointer<myTokens.Count)
+                if ((tokensPointer >= myTokens.Count) || 
+                    DataTypeLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
                 {
-                    error += "found: ";
-                    error += myTokens[tokensPointer].ToString();
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
                 }
+
+                string error = "Error in Function Body ... '}'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
-        }
+        }//tmam
         public static Node DataType()
         {
             Node curNode = new Node("DataType");
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_int)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_float)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_string)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                curNode.childrenNodes.Add(new Node("ε"));
                 string error = "Not a Valid DataType :( !!!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;// increase it for the first token in the function
             return curNode;
         }
         public static Node Parameters()
@@ -328,7 +363,6 @@ namespace TinyCompiler
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
                 node1 = ParametersDash();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
-
             }
             else
             {
@@ -340,10 +374,10 @@ namespace TinyCompiler
         {
             Node curNode = new Node("ManyStatements");
             int tmpPntr = tokensPointer;
-            if (StatementLookAhead())
+            if (StatementLookAhead() && myTokens[tokensPointer].Value!=TinyToken.t_return)
             {
                 tokensPointer = tmpPntr;
-                Node node1 = Statement();
+                Node node1 = StatementForFunctionBody();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
                 node1 = ManyStatements();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
@@ -352,6 +386,55 @@ namespace TinyCompiler
             {
                 tokensPointer = tmpPntr;
                 curNode.childrenNodes.Add(new Node("Epsilon"));
+            }
+            return curNode;
+        }
+        public static Node StatementForFunctionBody()
+        {
+            Node curNode = new Node("Statement");
+
+            int tmpPntr = tokensPointer;
+            Node dtpye = DataType();
+            tokensPointer = tmpPntr;
+            if (dtpye.nodeErrors.Count == 0)
+            {
+                Node node1 = DeclarationStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_if)
+            {
+                Node node1 = IfStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_write)
+            {
+                Node node1 = WriteStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_read)
+            {
+                Node node1 = ReadStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_repeat)
+            {
+                Node node1 = RepeatStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier && tokensPointer + 1 < myTokens.Count && myTokens[tokensPointer + 1].Value == TinyToken.t_lBracket)
+            {
+                Node node1 = FunctionCall();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            {
+                Node node1 = AssignmentStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else
+            {
+                curNode.childrenNodes.Add(new Node("ε"));
+                curNode.nodeErrors.Add("Couldn't find a valid statment");
             }
             return curNode;
         }
@@ -397,10 +480,14 @@ namespace TinyCompiler
                 Node node1 = AssignmentStatement();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             }
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
+            {
+                Node node1 = ReturnStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
             else
             {
-                curNode.childrenNodes.Add(new Node("Wrong Statement"));
-                tokensPointer++;
+                curNode.childrenNodes.Add(new Node("ε"));
                 curNode.nodeErrors.Add("Couldn't find a valid statment");
             }
             return curNode;
@@ -411,14 +498,21 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_if)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in IfStatement ... couldn't find reserved keyword 'if' ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_identifier))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in if statement ... Reserved Keyword   'if'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
 
             Node node1 = ConditionStatement();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
@@ -426,14 +520,21 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_then)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in IfStatement ... couldn't find reserved keyword 'then' ";
+                if ((tokensPointer >= myTokens.Count) || 
+                    StatementLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in if statement ... Reserved Keyword   'then'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             node1 = StatmentsForIf();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             node1 = Ifff();
@@ -476,14 +577,21 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in Condition ... Couldn't find the Identifier ";
+                if ((tokensPointer >= myTokens.Count) || (ConditionOperatorLookAhead()))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in Condition ... expected a variable  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = ConditionOperator();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             node1 = Term();
@@ -496,36 +604,41 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lessThan)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_biggerThan)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_notEqual)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_isEqual)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                curNode.childrenNodes.Add(new Node("ε"));
                 string error = "Couldn't find a Condition Operator  :( !!!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;// increase it for the first token in the function
             return curNode;
         }
         public static Node Term()
         {
             Node curNode = new Node("Term");
             int tmpPntr = tokensPointer;
-            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier && tokensPointer + 1 < myTokens.Count && myTokens[tokensPointer + 1].Value == TinyToken.t_lBracket)
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier 
+                && tokensPointer + 1 < myTokens.Count && myTokens[tokensPointer + 1].Value == TinyToken.t_lBracket)
             {
                 Node node1 = FunctionCall();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_number)
             {
@@ -539,9 +652,8 @@ namespace TinyCompiler
             }
             else
             {
-                curNode.childrenNodes.Add(new Node("Wrong Term"));
+                curNode.childrenNodes.Add(new Node("ε"));
                 curNode.nodeErrors.Add("Couldn't find a valid Term");
-                tokensPointer++;
             }
             return curNode;
         }
@@ -552,50 +664,73 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in FunctionCall ... couldn't find the function name";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_lBracket))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in Function Call ... can't find a variable  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in FunctionCall ... couldn't find left brackt '(' ";
+                if ((tokensPointer >= myTokens.Count) ||
+                    (myTokens[tokensPointer].Value == TinyToken.t_rBracket)||
+                    (myTokens[tokensPointer].Value==TinyToken.t_identifier))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in Function Call ... left bracket  '('  not found    :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = ManyIdentifiers();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
 
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in FunctionCall ... couldn't find the Right Bracket ')'";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_semicolon))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in Function Call ... right bracket  ')'  not found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in FunctionCall ... couldn't find the SemiColon ';' ";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in Function Call ... can't find the semicolon ';'    :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node ManyIdentifiers()
@@ -619,14 +754,21 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in Identifiers ... couldn't find an identifier ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_comma))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Can't find a variable  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = IdentifiersDash();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             return curNode;
@@ -642,14 +784,20 @@ namespace TinyCompiler
                 if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
                 {
                     curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
                 }
                 else
                 {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                    string error = "Error in Function Call ... couldn't find the identifier ";
+                    if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_comma))// don't increase the pointer if it matches with the next expected token
+                        curNode.childrenNodes.Add(new Node("ε"));
+                    else
+                    {
+                        curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                        tokensPointer++;
+                    }
+                    string error = "Can't find a variable  :(  !!!";
                     curNode.nodeErrors.Add(error);
                 }
-                tokensPointer++;
                 node1 = IdentifiersDash();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             }
@@ -665,18 +813,19 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_and)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_or)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                curNode.childrenNodes.Add(new Node("ε"));
                 string error = "Couldn't find a Boolean Operator  :( !!!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node StatmentsForIf()
@@ -711,13 +860,13 @@ namespace TinyCompiler
             {
                 return true;
             }
-            else
+            else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
             {
-                Node node1 = DataType();
-                if (node1.nodeErrors.Count == 0)
-                {
-                    return true;
-                }
+                return true;
+            }
+            else if(DataTypeLookAhead())
+            {
+                return true;
             }
             return false;
         }
@@ -756,16 +905,15 @@ namespace TinyCompiler
                 if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_end)
                 {
                     curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
                 }
                 else
                 {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                    string error = "couldn't find reserved keyword 'end' ";
+                    curNode.childrenNodes.Add(new Node("ε"));
+                    string error = "couldn't find elseif or else or end ";
                     curNode.nodeErrors.Add(error);
                 }
-                tokensPointer++;
             }
-
             return curNode;
         }
         public static Node ElseIfStatement()
@@ -774,28 +922,43 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_elseif)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ElseIfStatement ... couldn't find reserved keyword 'elseif' ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_identifier))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in else if statement ... Reserved Keyword   'elseif'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             Node node1 = ConditionStatement();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
 
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_then)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ElseIfStatement ... couldn't find reserved keyword 'then' ";
+                if ((tokensPointer >= myTokens.Count) ||
+                    StatementLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in else if statement ... Reserved Keyword   'then'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             node1 = StatmentsForIf();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             node1 = Ifff();
@@ -808,28 +971,67 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_else)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ElseStatement ... couldn't find reserved keyword 'else' ";
+                if ((tokensPointer >= myTokens.Count) ||
+                    StatementLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in else statement ... Reserved Keyword   'else'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = StatmentsForIf();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_end)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ElseStatement ... couldn't find reserved keyword 'end' ";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in Else Statement ... couldn't find reserved keyword 'end' ";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
+        }
+        public static bool EquationLookAhead()
+        {
+            if(myTokens[tokensPointer].Value==TinyToken.t_identifier)
+            {
+                return true;
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_number)
+            {
+                return true;
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_lBracket)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool ExpressionLookAhead()
+        {
+            if (EquationLookAhead() || myTokens[tokensPointer].Value==TinyToken.t_constantString)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool SomethingLookAhead()
+        {
+            if (ExpressionLookAhead() || myTokens[tokensPointer].Value == TinyToken.t_endl)
+            {
+                return true;
+            }
+            return false;
         }
         public static Node WriteStatement()
         {
@@ -837,27 +1039,35 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_write)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in WriteStatement ... couldn't find reserved keyword 'write' ";
+                if ((tokensPointer >= myTokens.Count) || SomethingLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in write statement ... Reserved Keyword   'write'   Not Found  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+            
             Node node1 = Something();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in WriteStatement ... couldn't find reserved keyword ';' ";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in WriteStatement ... couldn't find semicolon ';' ";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node Something()
@@ -875,7 +1085,7 @@ namespace TinyCompiler
                     curNode.childrenNodes.Add(node1);
                 else
                 {
-                    curNode.childrenNodes.Add(node1);
+                    curNode.childrenNodes.Add(new Node("ε"));
                     curNode.nodeErrors.Add("Couldn't find a valid Expression or endl in write statement");
                 }
             }
@@ -896,7 +1106,7 @@ namespace TinyCompiler
                     curNode.childrenNodes.Add(node1);
                 else
                 {
-                    curNode.childrenNodes.Add(node1);
+                    curNode.childrenNodes.Add(new Node("ε"));
                     curNode.nodeErrors.Add("Couldn't find a valid equation or constant string");
                 }
             }
@@ -952,27 +1162,36 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_lBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in HelperEquation ... couldn't find  '(' ";
+                if ((tokensPointer >= myTokens.Count) || 
+                    (myTokens[tokensPointer].Value == TinyToken.t_identifier)||
+                    (myTokens[tokensPointer].Value == TinyToken.t_number))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in Equation ... can't find left bracket  '('   :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = ManyTerms();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in HelperEquation ... couldn't find ')' ";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in Equation ... can't find right bracket  ')'   :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node ManyTerms()
@@ -1010,27 +1229,29 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_plus)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_minus)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_multiply)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_divide)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                curNode.childrenNodes.Add(new Node("ε"));
                 string error = "Couldn't find an ArthimiticOperator Operator  :( !!!!";
                 curNode.nodeErrors.Add(error);
-
             }
-            tokensPointer++;// increase it for the first token in the function
             return curNode;
         }
         public static Node ReadStatement()
@@ -1039,36 +1260,50 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_read)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ReadStatement ... couldn't find reserved keyword 'read' ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_identifier))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in read statement ... can't find reserved keyword 'read'  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ReadStatement ... couldn't find an identifier ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_identifier))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in read statement ... can't find The variable   :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ReadStatement ... couldn't find ';' ";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in Declaration ... can't find semicolon ';'  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node ReturnStatement()
@@ -1077,27 +1312,34 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ReturnStatement ... couldn't find reserved keyword 'return' ";
+                if ((tokensPointer >= myTokens.Count) || ExpressionLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in Return statement ... can't find reserved keyword 'return'  :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             Node node1 = Expression();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                curNode.childrenNodes.Add(new Node("ε"));
                 string error = "Error in ReturnStatement ... couldn't find ';' ";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node AssignmentStatement()
@@ -1106,38 +1348,52 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in AssignmentStatement ... couldn't find an identifier ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_assign))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in Assignment statement ... variable not found :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_assign)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in AssignmentStatement ... couldn't find ':=' ";
+                if ((tokensPointer >= myTokens.Count) || ExpressionLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in Assignment statement ... can't find the assingment operator  ':='    :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
+
             Node node1 = Expression();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                curNode.childrenNodes.Add(new Node("ε"));
                 string error = "Error in AssignmentStatement ... couldn't find  ';' ";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node RepeatStatement()
@@ -1146,27 +1402,39 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_repeat)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in RepeatStatement ... couldn't find reserved keyword 'repeat' ";
+                if ((tokensPointer >= myTokens.Count) || StatementLookAhead())// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in repeat statement ... Reserved Keyword 'repeat' not found     :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = StatmentsForIf();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_until)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in RepeatStatement ... couldn't find reserved keyword 'until' ";
+                if ((tokensPointer >= myTokens.Count) || myTokens[tokensPointer].Value==TinyToken.t_identifier)// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+                string error = "Error in repeat statement ... Reserved Keyword 'until' not found     :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             node1 = ConditionStatement();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             return curNode;
@@ -1181,14 +1449,14 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in DeclarationStatement ... couldn't find ';' ";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in variable declaration ... couldn't find ';' ";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             return curNode;
         }
         public static Node ManyIdentifiersDecl()
@@ -1197,14 +1465,21 @@ namespace TinyCompiler
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                tokensPointer++;
             }
             else
             {
-                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                string error = "Error in ManyIdentifiersDecl ... couldn't find an identifier ";
+                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_assign))// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "error in variables declaration ,,not a proper variable name :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
-            tokensPointer++;
             Node node1 = AssignmentInDecl();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             node1 = ManyIdentifiersDeclDash();
@@ -1222,14 +1497,21 @@ namespace TinyCompiler
                 if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
                 {
                     curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
                 }
                 else
                 {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                    string error = "Error in Declaration ... couldn't find the identifier ";
+                    if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_assign))// don't increase the pointer if it matches with the next expected token
+                        curNode.childrenNodes.Add(new Node("ε"));
+                    else
+                    {
+                        curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                        tokensPointer++;
+                    }
+
+                    string error = "error in variables declaration ,,not a proper variable name :(  !!!";
                     curNode.nodeErrors.Add(error);
                 }
-                tokensPointer++;
                 node1 = AssignmentInDecl();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
                 node1 = ManyIdentifiersDeclDash();
@@ -1246,16 +1528,7 @@ namespace TinyCompiler
             Node curNode = new Node("AssignmentInDecl");
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_assign)
             {
-                if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_assign)
-                {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                }
-                else
-                {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                    string error = "Error in AssignmentInDecl ... couldn't find ':=' ";
-                    curNode.nodeErrors.Add(error);
-                }
+                curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
                 tokensPointer++;
                 Node node1 = Expression();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
