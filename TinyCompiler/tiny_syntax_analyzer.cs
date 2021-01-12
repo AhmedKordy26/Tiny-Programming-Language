@@ -294,8 +294,24 @@ namespace TinyCompiler
 
             Node node1 = ManyStatements();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
-            node1 = ReturnStatement();
-            curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_return)
+            {
+                node1 = ReturnStatement();
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            }
+            else
+            {
+                if ((tokensPointer >= myTokens.Count) || myTokens[tokensPointer].Value == TinyToken.t_rCurlyBracket)// don't increase the pointer if it matches with the next expected token
+                    curNode.childrenNodes.Add(new Node("ε"));
+                else
+                {
+                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
+                    tokensPointer++;
+                }
+
+                string error = "Error in Function Body ... reserved keyword return Not Found  :(  !!!";
+                curNode.nodeErrors.Add(error);
+            }
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rCurlyBracket)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
