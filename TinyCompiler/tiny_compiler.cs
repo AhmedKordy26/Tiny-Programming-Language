@@ -47,14 +47,26 @@ namespace TinyCompiler
             {
                 TreeNode tmpTree = DFS(curNode);
                 if(tmpTree!=null &&curNode.NodeName!="Epsilon")
-                    bigTreeNode.Nodes.Add(DFS(curNode));
+                    bigTreeNode.Nodes.Add(tmpTree);
             }
             if (bigTreeNode.Nodes.Count == 0) return null;
             return bigTreeNode;
         }
         public TreeNode getTreeView()
         {
-            TreeNode treeNode = DFS(tiny_syntax_analyzer.root);
+            TreeNode treeNode =DFS(tiny_syntax_analyzer.root);
+            /*Queue<Node> nodesQ=new Queue<Node>();
+            nodesQ.Enqueue(tiny_syntax_analyzer.root);
+            Dictionary<string, string> dict = new Dictionary<string, string>() ;
+            while(nodesQ.Count>0)
+            {
+                Node tmpNode = nodesQ.Dequeue();
+                foreach (Node curNode in tmpNode.childrenNodes)
+                {
+                    nodesQ.Enqueue(curNode);
+                    dict[curNode.NodeName] = tmpNode.NodeName;
+                }
+            }*/
             return treeNode;
         }
 

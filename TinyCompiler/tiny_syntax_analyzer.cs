@@ -86,6 +86,38 @@ namespace TinyCompiler
             }
             return false;
         }
+        public static bool EquationLookAhead()
+        {
+            if (myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            {
+                return true;
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_number)
+            {
+                return true;
+            }
+            if (myTokens[tokensPointer].Value == TinyToken.t_lBracket)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool ExpressionLookAhead()
+        {
+            if (EquationLookAhead() || myTokens[tokensPointer].Value == TinyToken.t_constantString)
+            {
+                return true;
+            }
+            return false;
+        }
+        public static bool SomethingLookAhead()
+        {
+            if (ExpressionLookAhead() || myTokens[tokensPointer].Value == TinyToken.t_endl)
+            {
+                return true;
+            }
+            return false;
+        }
         public static Node Program()
         {
             Node curNode = new Node("Program");
@@ -439,7 +471,7 @@ namespace TinyCompiler
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier && tokensPointer + 1 < myTokens.Count && myTokens[tokensPointer + 1].Value == TinyToken.t_lBracket)
             {
-                Node node1 = FunctionCall();
+                Node node1 = FunctionCallStatement();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
@@ -488,7 +520,7 @@ namespace TinyCompiler
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier && tokensPointer + 1 < myTokens.Count && myTokens[tokensPointer + 1].Value == TinyToken.t_lBracket)
             {
-                Node node1 = FunctionCall();
+                Node node1 = FunctionCallStatement();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             }
             else if(tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
@@ -654,7 +686,6 @@ namespace TinyCompiler
             {
                 Node node1 = FunctionCall();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
-                tokensPointer++;
             }
             else if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_number)
             {
@@ -717,6 +748,9 @@ namespace TinyCompiler
             }
             Node node1 = ManyIdentifiers();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            if(curNode.nodeErrors.Count!=0)
+                    curNode.nodeErrors.Add("Error in FunctionCall");
+
 
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_rBracket)
             {
@@ -725,17 +759,17 @@ namespace TinyCompiler
             }
             else
             {
-                if ((tokensPointer >= myTokens.Count) || (myTokens[tokensPointer].Value == TinyToken.t_semicolon))// don't increase the pointer if it matches with the next expected token
-                    curNode.childrenNodes.Add(new Node("ε"));
-                else
-                {
-                    curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
-                    tokensPointer++;
-                }
-
-                string error = "Error in Function Call ... right bracket  ')'  not found  :(  !!!";
+                curNode.childrenNodes.Add(new Node("ε"));
+                string error = "Error in Function Call ... right bracket  ')'  not found    :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
+            return curNode;
+        }
+        public static Node FunctionCallStatement()
+        {
+            Node curNode = new Node("FunctionCallStatement");
+            Node node1 = FunctionCall();
+            curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_semicolon)
             {
                 curNode.childrenNodes.Add(new Node(myTokens[tokensPointer].Key));
@@ -744,7 +778,7 @@ namespace TinyCompiler
             else
             {
                 curNode.childrenNodes.Add(new Node("ε"));
-                string error = "Error in Function Call ... can't find the semicolon ';'    :(  !!!";
+                string error = "Error in Function Call Statement ... can't find the semicolon ';'    :(  !!!";
                 curNode.nodeErrors.Add(error);
             }
             return curNode;
@@ -753,7 +787,8 @@ namespace TinyCompiler
         {
             Node curNode = new Node("ManyIdentifiers");
             int tmpPntr = tokensPointer;
-            if (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+            if ((tokensPointer < myTokens.Count && myTokens[tokensPointer].Value == TinyToken.t_identifier)
+                || (tokensPointer < myTokens.Count && myTokens[tokensPointer].Value != TinyToken.t_rBracket))
             {
                 Node node1 = Identifiers();
                 curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
@@ -1017,38 +1052,6 @@ namespace TinyCompiler
             }
             return curNode;
         }
-        public static bool EquationLookAhead()
-        {
-            if(myTokens[tokensPointer].Value==TinyToken.t_identifier)
-            {
-                return true;
-            }
-            if (myTokens[tokensPointer].Value == TinyToken.t_number)
-            {
-                return true;
-            }
-            if (myTokens[tokensPointer].Value == TinyToken.t_lBracket)
-            {
-                return true;
-            }
-            return false;
-        }
-        public static bool ExpressionLookAhead()
-        {
-            if (EquationLookAhead() || myTokens[tokensPointer].Value==TinyToken.t_constantString)
-            {
-                return true;
-            }
-            return false;
-        }
-        public static bool SomethingLookAhead()
-        {
-            if (ExpressionLookAhead() || myTokens[tokensPointer].Value == TinyToken.t_endl)
-            {
-                return true;
-            }
-            return false;
-        }
         public static Node WriteStatement()
         {
             Node curNode = new Node("WriteStatement");
@@ -1118,13 +1121,15 @@ namespace TinyCompiler
             else 
             {
                 Node node1 = Equation();
-                if (node1.nodeErrors.Count == 0)
+                /*if (node1.nodeErrors.Count == 0)
                     curNode.childrenNodes.Add(node1);
                 else
                 {
                     curNode.childrenNodes.Add(new Node("ε"));
                     curNode.nodeErrors.Add("Couldn't find a valid equation or constant string");
                 }
+                */
+                curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             }
             return curNode;
         }
@@ -1135,6 +1140,10 @@ namespace TinyCompiler
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
             node1 = EquationDash();
             curNode = AddToChildrenNodesOrErrorsList(curNode, node1);
+            if(curNode.nodeErrors.Count>0)
+            {
+                curNode.nodeErrors.Add("Error in Equation : no valid terms "); 
+            }
             return curNode;
         }
         public static Node EquationDash()// Equation CFG needs to be modified 
